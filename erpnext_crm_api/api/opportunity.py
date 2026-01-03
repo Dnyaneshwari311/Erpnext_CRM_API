@@ -80,6 +80,7 @@ def create_opportunity(data=None):
 
         return {
             "status": "success",
+            "status_code":201,
             "message": "Opportunity created successfully",
             "opportunity_id": opp.name
         }
@@ -295,6 +296,7 @@ def update_opportunity(opportunity_id=None, data=None):
 
         return {
             "status": "success",
+            "status_code":200,
             "message": "Opportunity updated successfully",
             "opportunity_id": opp.name
         }
@@ -323,12 +325,61 @@ def delete_opportunity(opportunity_id=None):
 
         return {
             "status": "success",
+            "status_code":200,
             "message": "Opportunity deleted successfully",
             "opportunity_id": opportunity_id
         }
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Delete Opportunity API Error")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+
+
+
+
+
+
+
+
+
+@frappe.whitelist()
+def get_opportunity(name=None):
+    """
+    Fetch a single Opportunity by its name
+    """
+    try:
+        if not name:
+            frappe.throw(_("name is required"))
+
+        # Fetch Opportunity
+        opp = frappe.get_doc("Opportunity", name)
+
+        # Convert doc to dict
+        data = opp.as_dict()
+
+        # Ensure items are included
+        data["items"] = [item.as_dict() for item in opp.items]
+
+        return {
+            "status": "success",
+            "message": "Opportunity fetched successfully",
+            "name": opp.name,   # ✅ explicitly returning name
+            "data": data
+        }
+
+    except frappe.DoesNotExistError:
+        return {
+            "status": "error",
+            "message": _("Opportunity with name '{0}' does not exist").format(name)
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Get Opportunity API Error")
         return {
             "status": "error",
             "message": str(e)

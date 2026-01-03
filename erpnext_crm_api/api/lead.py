@@ -72,7 +72,9 @@ def create_lead(data=None):
 
     return {
         "status": "success",
-        "lead_id": lead.name
+        "status_code":201,
+        "lead_id": lead.name,
+        "message":"lead Created Successfully"
     }
 
 
@@ -237,6 +239,7 @@ def update_lead():
 
     return {
         "status": "success",
+        "status_code":200,
         "lead_id": lead.name,
         "message": "Lead updated successfully"
     }
@@ -283,9 +286,89 @@ def delete_lead():
 
     return {
         "status": "success",
+        "status_code":200,
         "lead_id": lead_name,
         "message": "Lead deleted successfully"
     }
+
+
+
+
+ 
+
+@frappe.whitelist()
+def get_lead_by_id(lead_name=None):
+    """
+    Get a single Lead by its name (ID)
+    - lead_name: Lead.name, e.g., CRM-LEAD-2025-00001
+    """
+
+    # fallback to request data
+    if not lead_name:
+        import json
+        try:
+            data = json.loads(frappe.request.data or "{}")
+        except Exception:
+            frappe.throw(_("Invalid JSON payload"))
+        lead_name = data.get("name")
+
+    if not lead_name:
+        frappe.throw(_("Lead name is required"))
+
+    # Check if Lead exists
+    if not frappe.db.exists("Lead", lead_name):
+        frappe.throw(_("Lead '{0}' does not exist").format(lead_name))
+
+    # Fetch Lead fields
+    lead = frappe.get_doc("Lead", lead_name)
+
+    # Prepare response dictionary
+    lead_data = {
+        "name": lead.name,
+        "salutation": lead.salutation,
+        "first_name": lead.first_name,
+        "middle_name": lead.middle_name,
+        "last_name": lead.last_name,
+        "gender": lead.gender,
+        "status": lead.status,
+        "source": lead.source,
+        "type": lead.type,
+        "request_type": lead.request_type,
+        "email_id": lead.email_id,
+        "mobile_no": lead.mobile_no,
+        "phone": lead.phone,
+        "whatsapp_no": lead.whatsapp_no,
+        "website": lead.website,
+        "phone_ext": lead.phone_ext,
+        "company_name": lead.company_name,
+        "annual_revenue": lead.annual_revenue,
+        "no_of_employees": lead.no_of_employees,
+        "industry": lead.industry,
+        "market_segment": lead.market_segment,
+        "city": lead.city,
+        "state": lead.state,
+        "country": lead.country,
+        "territory": lead.territory,
+        "qualification_status": lead.qualification_status,
+        "qualified_by": lead.qualified_by,
+        "qualified_on": lead.qualified_on,
+        "campaign_name": lead.campaign_name,
+        "company": lead.company,
+        
+        "disabled": lead.disabled,
+        "unsubscribed": lead.unsubscribed,
+        "blog_subscriber": lead.blog_subscriber,
+        "creation": lead.creation,
+        "modified": lead.modified
+    }
+
+    return {
+        "status": "success",
+        "message": "Lead fetched successfully",
+        "data": lead_data
+    }
+
+
 
 
 
@@ -335,6 +418,7 @@ def convert_lead_to_opportunity():
 
         return {
             "status": "success",
+            "status_code":201,
             "opportunity_id": opportunity.name,
             "message": _("Lead converted to Opportunity successfully")
         }

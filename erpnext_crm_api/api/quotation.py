@@ -104,6 +104,7 @@ def create_quotation(data=None):
 
     return {
         "status": "success",
+        "status_code":201,
         "quotation": doc.name,
         "message": "Quotation Created Successfully"
     }
@@ -469,3 +470,85 @@ def list_quotation(
         # actual data
         "data": quotations
     }
+
+
+
+
+
+
+
+
+
+
+
+@frappe.whitelist()
+def get_quotation_by_id(name=None):
+    """
+    Fetch a single Quotation by its name (ID)
+    """
+    try:
+        if not name:
+            return {
+                "status": "error",
+                "message": "Quotation name is required"
+            }
+
+        doc = frappe.get_doc("Quotation", name)
+
+        return {
+            "status": "success",
+            "message": "Quotation fetched successfully",
+            "data": {
+                "name": doc.name,
+                "transaction_date": doc.transaction_date,
+                "valid_till": doc.valid_till,
+                "quotation_to": doc.quotation_to,
+                "party_name": doc.party_name,
+                "company": doc.company,
+                "status": doc.status,
+                "currency": doc.currency,
+                "grand_total": doc.grand_total,
+
+                "items": [
+                    {
+                        "item_code": i.item_code,
+                        "qty": i.qty,
+                        "rate": i.rate,
+                        "amount": i.amount
+                    }
+                    for i in doc.items
+                ],
+
+                "taxes": [
+                    {
+                        "charge_type": t.charge_type,
+                        "account_head": t.account_head,
+                        "rate": t.rate,
+                        "tax_amount": t.tax_amount
+                    }
+                    for t in doc.taxes
+                ],
+
+                "payment_schedule": [
+                    {
+                        "payment_term": p.payment_term,
+                        "due_date": p.due_date,
+                        "expected_amount": p.payment_amount
+                    }
+                    for p in doc.payment_schedule
+                ]
+            }
+        }
+
+    except frappe.DoesNotExistError:
+        return {
+            "status": "error",
+            "message": f"Quotation {name} does not exist"
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Get Quotation By ID Error")
+        return {
+            "status": "error",
+            "message": str(e)
+        }

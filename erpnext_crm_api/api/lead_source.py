@@ -132,3 +132,45 @@ def delete_lead_source(name=None):
         "name": name,
         "message": "Lead Source deleted successfully"
     }
+
+
+
+
+
+
+
+
+
+
+
+
+@frappe.whitelist()
+def get_lead_source(name=None):
+    """
+    Get a single Lead Source by its name (ID).
+    """
+    # Fallback to form_dict if name not passed
+    if not name:
+        name = frappe.form_dict.get("name")
+
+    if not name:
+        frappe.throw("Lead Source name (ID) is required")
+
+    # Fetch the doc
+    try:
+        doc = frappe.get_doc("Lead Source", name)
+        return {
+            "status": "success",
+            "message": "Lead Source fetched successfully",
+            "data": {
+                "name": doc.name,
+                "source_name": doc.source_name,
+                "details": doc.details,
+                "modified": doc.modified
+            }
+        }
+    except frappe.DoesNotExistError:
+        return {
+            "status": "error",
+            "message": f"Lead Source with name '{name}' does not exist"
+        }

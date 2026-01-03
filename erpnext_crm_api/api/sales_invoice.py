@@ -21,7 +21,10 @@ def create_sales_invoice(data=None):
         })
         si.insert(ignore_permissions=True)
         si.submit() if data.get("submit") else None  # optional submit
-        return {"status": "success", "sales_invoice": si.name}
+        return {"status": "success", 
+                "status_code":201,
+                "message":"Sales Invoice Created Successfully ",
+                "sales_invoice": si.name}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
@@ -188,6 +191,7 @@ def update_sales_invoice(name=None, data=None):
 
         return {
             "status": "success",
+            "status_code":200,
             "sales_invoice": si.name,
             "message":"sales invoice updated successfully"
         }
@@ -245,6 +249,7 @@ def delete_sales_invoice(name=None):
 
         return {
             "status": "success",
+            "status_code":200,
             "message": f"Sales Invoice {name} deleted"
         }
 
@@ -252,6 +257,77 @@ def delete_sales_invoice(name=None):
         frappe.log_error(frappe.get_traceback(), "Delete Sales Invoice API")
         return {
             "status": "error",
+            "message": str(e)
+        }
+
+
+
+
+
+
+
+
+
+
+
+_
+
+@frappe.whitelist()
+def get_sales_invoice_by_id(name=None):
+    """
+    Get Sales Invoice by ID (name)
+    """
+
+    # Accept name from URL or body
+    name = name or frappe.form_dict.get("name")
+
+    if not name:
+        frappe.throw(_("Sales Invoice name is required"))
+
+    try:
+        si = frappe.get_doc("Sales Invoice", name)
+
+        return {
+            "status": "success",
+            "status_code": 200,
+            "message":"Sales Invoice Fetched Successfully ",
+            "data": {
+                "name": si.name,
+                "posting_date": si.posting_date,
+                "due_date": si.due_date,
+                "customer": si.customer,
+                "company": si.company,
+                "currency": si.currency,
+                "grand_total": si.grand_total,
+                "net_total": si.net_total,
+                "status": si.status,
+                "docstatus": si.docstatus,
+                "items": [
+                    {
+                        "item_code": item.item_code,
+                        "item_name": item.item_name,
+                        "qty": item.qty,
+                        "rate": item.rate,
+                        "amount": item.amount,
+                        "warehouse": item.warehouse
+                    }
+                    for item in si.items
+                ]
+            }
+        }
+
+    except frappe.DoesNotExistError:
+        return {
+            "status": "error",
+            "status_code": 404,
+            "message": "Sales Invoice not found"
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Get Sales Invoice API")
+        return {
+            "status": "error",
+            "status_code": 500,
             "message": str(e)
         }
 

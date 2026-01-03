@@ -73,9 +73,10 @@ def create_sales_order(data=None):
 
         return {
             "status": "success",
+            "status_code":201,
             "message": "Sales Order created",
             "sales_order": so.name,
-            "docstatus": so.docstatus
+            # "docstatus": so.docstatus
         }
 
     except Exception as e:
@@ -138,6 +139,7 @@ def update_sales_order(data=None):
 
         return {
             "status": "success",
+            "status_code":200,
             "message": "Sales Order updated",
             "sales_order": so.name
         }
@@ -277,6 +279,7 @@ def delete_sales_order(name):
 
         return {
             "status": "success",
+            "status_code":200,
             "message": f"Sales Order {name} deleted successfully"
         }
 
