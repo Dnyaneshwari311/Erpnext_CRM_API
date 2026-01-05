@@ -1,3 +1,27 @@
+# import frappe
+
+# @frappe.whitelist()
+# def create_lead_source(data=None):
+#     if not data:
+#         data = frappe.form_dict
+
+#     if isinstance(data, str):
+#         data = frappe.parse_json(data)
+
+#     if not data.get("source_name"):
+#         frappe.throw("source_name is required")
+
+#     doc = frappe.new_doc("Lead Source")
+#     doc.source_name = data["source_name"]
+#     doc.details = data.get("details")
+#     doc.insert(ignore_permissions=True)
+
+#     return {
+#         "status": "success",
+#         "name": doc.name
+#     }
+
+
 import frappe
 
 @frappe.whitelist()
@@ -8,8 +32,13 @@ def create_lead_source(data=None):
     if isinstance(data, str):
         data = frappe.parse_json(data)
 
+    # ❌ DO NOT use frappe.throw for API validation
     if not data.get("source_name"):
-        frappe.throw("source_name is required")
+        frappe.local.response.http_status_code = 400
+        return {
+            "status": "error",
+            "msg": "source_name is required"
+        }
 
     doc = frappe.new_doc("Lead Source")
     doc.source_name = data["source_name"]
@@ -18,9 +47,10 @@ def create_lead_source(data=None):
 
     return {
         "status": "success",
+        "status_code":201,
+        "msg": "Lead Source created successfully",
         "name": doc.name
     }
-
 
 
 

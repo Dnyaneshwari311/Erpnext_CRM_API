@@ -311,3 +311,327 @@ def cancel_sales_order(name):
         "sales_order": so.name,
         "docstatus": so.docstatus
     }
+
+
+
+
+
+
+
+
+@frappe.whitelist(methods=["GET"])
+def get_sales_order_by_id(name):
+    """
+    Get Sales Order details by ID (name)
+    """
+    try:
+        if not name:
+            return {
+                "status": "error",
+                "message": "Sales Order name is required"
+            }
+
+        so = frappe.get_doc("Sales Order", name)
+
+        return {
+            "status": "success",
+            "message":"Sales Order Fetched Successfully",
+            "data": {
+                # 🔹 BASIC INFO
+                "name": so.name,
+                "customer": so.customer,
+                "transaction_date": so.transaction_date,
+                "delivery_date": so.delivery_date,
+                "company": so.company,
+                "order_type": so.order_type,
+                "status": so.status,
+                "currency": so.currency,
+                "price_list": so.selling_price_list,
+
+                "exchange_rate": so.conversion_rate,
+                "customer_purchase_order": so.po_no,
+                # 🔹 TOTALS
+                "total": so.total,
+                "total_taxes_and_charges": so.total_taxes_and_charges,
+                "grand_total": so.grand_total,
+
+                # 🔹 ACCOUNTING DIMENSIONS
+                "cost_center": so.cost_center,
+                "project": so.project,
+
+                # 🔹 ITEMS
+                "items": [
+                    {
+                        "item_code": i.item_code,
+                        "item_name": i.item_name,
+                        "qty": i.qty,
+                        "rate": i.rate,
+                        "amount": i.amount,
+                        "delivery_date": i.delivery_date,
+                        "warehouse": i.warehouse
+                    }
+                    for i in so.items
+                ],
+
+                # 🔹 TAXES
+                "taxes": [
+                    {
+                        "charge_type": t.charge_type,
+                        "account_head": t.account_head,
+                        "rate": t.rate,
+                        "tax_amount": t.tax_amount,
+                        "total": t.total
+                    }
+                    for t in so.taxes
+                ],
+
+                # 🔹 PAYMENT SCHEDULE
+                "payment_schedule": [
+                    {
+                        "payment_term": p.payment_term,
+                        "due_date": p.due_date,
+                        "invoice_portion": p.invoice_portion,
+                        "payment_amount": p.payment_amount
+                    }
+                    for p in so.payment_schedule
+                ],
+
+                # 🔹 SALES TEAM
+                "sales_team": [
+                    {
+                        "sales_person": s.sales_person,
+                        "allocated_percentage": s.allocated_percentage,
+                        "commission_rate": s.commission_rate
+                    }
+                    for s in so.sales_team
+                ],
+
+                # 🔹 META
+                "docstatus": so.docstatus,
+                "created_on": so.creation,
+                "modified_on": so.modified
+            }
+        }
+
+    except frappe.DoesNotExistError:
+        return {
+            "status": "error",
+            "message": "Sales Order not found"
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Get Sales Order Error")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+
+
+
+
+
+
+
+
+
+from erpnext.selling.doctype.sales_order.sales_order import make_sales_invoice
+
+
+@frappe.whitelist(methods=["POST"])
+def create_sales_invoice_from_sales_order(data=None):
+    if not data:
+        data = frappe.form_dict
+
+    if isinstance(data, str):
+        data = frappe.parse_json(data)
+
+    sales_order = data.get("sales_order")
+
+    if not sales_order:
+        return {
+            "status": "error",
+            "message": "sales_order is required"
+        }
+
+    try:
+        # 🔹 Validate Sales Order
+        so = frappe.get_doc("Sales Order", sales_order)
+
+        if so.docstatus != 1:
+            return {
+                "status": "error",
+                "message": "Sales Order must be Submitted to create Sales Invoice"
+            }
+
+        # 🔹 Create Sales Invoice using ERPNext mapper
+        si = make_sales_invoice(sales_order)
+
+        # 🔹 Optional overrides
+        if data.get("posting_date"):
+            si.posting_date = data.get("posting_date")
+
+        if data.get("due_date"):
+            si.due_date = data.get("due_date")
+
+        if data.get("remarks"):
+            si.remarks = data.get("remarks")
+
+        # 🔹 Insert Invoice
+        si.insert(ignore_permissions=True)
+
+        # 🔹 Optional auto-submit
+        if data.get("submit"):
+            si.submit()
+
+        return {
+            "status": "success",
+            "status_code": 201,
+            "message": "Sales Invoice created successfully",
+            "sales_invoice": si.name
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Create Sales Invoice Error")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+
+
+
+
+
+import frappe
+from erpnext.selling.doctype.sales_order.sales_order import make_delivery_note
+from erpnext.stock.utils import get_latest_stock_qty
+
+
+@frappe.whitelist(methods=["POST"])
+def create_delivery_note_from_sales_order(data=None):
+    if not data:
+        data = frappe.form_dict
+
+    if isinstance(data, str):
+        data = frappe.parse_json(data)
+
+    sales_order = data.get("sales_order")
+
+    if not sales_order:
+        return {
+            "status": "error",
+            "message": "sales_order is required"
+        }
+
+    try:
+        # 🔹 Validate Sales Order
+        so = frappe.get_doc("Sales Order", sales_order)
+
+        if so.docstatus != 1:
+            return {
+                "status": "error",
+                "message": "Sales Order must be Submitted"
+            }
+
+        # 🔹 Create DN draft (no DB insert yet)
+        dn = make_delivery_note(sales_order)
+
+        # 🔹 Optional warehouse override
+        if data.get("warehouse"):
+            for item in dn.items:
+                item.warehouse = data.get("warehouse")
+
+        # 🔹 STOCK PRE-CHECK (IMPORTANT)
+        for item in dn.items:
+            available_qty = get_latest_stock_qty(
+                item.item_code,
+                item.warehouse
+            )
+
+            if available_qty < item.qty:
+                return {
+                    "status": "error",
+                    "message": (
+                        f"Insufficient stock for {item.item_code} "
+                        f"in {item.warehouse}. "
+                        f"Available: {available_qty}, "
+                        f"Required: {item.qty}"
+                    )
+                }
+
+        # 🔹 Insert DN
+        dn.insert(ignore_permissions=True)
+
+        # 🔹 Auto-submit
+        if data.get("submit"):
+            dn.submit()
+
+        return {
+            "status": "success",
+            "status_code": 201,
+            "message": "Delivery Note created successfully",
+            "delivery_note": dn.name,
+            "docstatus": dn.docstatus
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Delivery Note API Error")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+
+
+
+
+
+@frappe.whitelist(methods=["POST"])
+def submit_sales_order(name=None):
+    """
+    Submit a Draft Sales Order
+    """
+    try:
+        if not name:
+            return {
+                "status": "error",
+                "message": "Sales Order name is required"
+            }
+
+        # Fetch the Sales Order
+        so = frappe.get_doc("Sales Order", name)
+
+        # Only Draft orders can be submitted
+        if so.docstatus != 0:
+            return {
+                "status": "error",
+                "message": f"Only Draft Sales Orders can be submitted (Current docstatus: {so.docstatus})"
+            }
+
+        # Submit the Sales Order
+        so.submit()
+
+        return {
+            "status": "success",
+            "status_code": 200,
+            "message": f"Sales Order {name} submitted successfully",
+            "sales_order": so.name,
+        
+        }
+
+    except frappe.ValidationError as ve:
+        return {
+            "status": "error",
+            "message": str(ve)
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Submit Sales Order Error")
+        return {
+            "status": "error",
+            "message": str(e)
+        }

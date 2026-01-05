@@ -103,6 +103,107 @@ def create_opportunity(data=None):
 
 
 
+# @frappe.whitelist()
+# def list_opportunity(
+#     page=1,
+#     page_size=10,
+#     sort_by="modified",
+#     sort_order="desc",
+#     search=None,
+#     status=None,
+#     source=None,
+#     opportunity_from=None,
+#     company=None
+# ):
+#     page = int(page)
+#     page_size = int(page_size)
+#     start = (page - 1) * page_size
+
+#     # -------------------------
+#     # AND filters
+#     # -------------------------
+#     filters = {}
+#     if status:
+#         filters["status"] = status
+#     if source:
+#         filters["source"] = source
+#     if opportunity_from:
+#         filters["opportunity_from"] = opportunity_from
+#     if company:
+#         filters["company"] = company
+
+#     # -------------------------
+#     # OR filters (search)
+#     # -------------------------
+#     or_filters = []
+#     if search:
+#         or_filters = [
+#             ["Opportunity", "party_name", "like", f"%{search}%"],
+#             ["Opportunity", "contact_email", "like", f"%{search}%"],
+#             ["Opportunity", "contact_mobile", "like", f"%{search}%"],
+#             ["Opportunity", "source", "like", f"%{search}%"],
+#             ["Opportunity", "company", "like", f"%{search}%"],
+#         ]
+
+#     # -------------------------
+#     # DATA QUERY
+#     # -------------------------
+#     opportunities = frappe.get_all(
+#         "Opportunity",
+#         fields=[
+#             "name",
+#             "party_name",
+#             "status",
+#             "source",
+#             "opportunity_from",
+#             "company",
+#             "transaction_date",
+#             "opportunity_amount",
+#             "sales_stage",
+#             "modified"
+#         ],
+#         filters=filters,
+#         or_filters=or_filters,
+#         order_by=f"{sort_by} {sort_order}",
+#         limit_start=start,
+#         limit_page_length=page_size
+#     )
+
+#     # -------------------------
+#     # TOTAL COUNT (supports OR)
+#     # -------------------------
+#     total_count = len(
+#         frappe.get_all(
+#             "Opportunity",
+#             filters=filters,
+#             or_filters=or_filters,
+#             pluck="name"
+#         )
+#     )
+
+#     total_pages = (total_count + page_size - 1) // page_size
+
+#     return {
+#         "status": "success",
+
+#         # pagination info
+#         "page": page,
+#         "page_size": page_size,
+#         "total": total_count,
+#         "total_pages": total_pages,
+
+#         # navigation helpers
+#         "next_page": page + 1 if page < total_pages else None,
+#         "prev_page": page - 1 if page > 1 else None,
+
+#         # actual data
+#         "data": opportunities
+#     }
+
+
+
+
+
 @frappe.whitelist()
 def list_opportunity(
     page=1,
@@ -146,22 +247,11 @@ def list_opportunity(
         ]
 
     # -------------------------
-    # DATA QUERY
+    # DATA QUERY (ALL FIELDS)
     # -------------------------
     opportunities = frappe.get_all(
         "Opportunity",
-        fields=[
-            "name",
-            "party_name",
-            "status",
-            "source",
-            "opportunity_from",
-            "company",
-            "transaction_date",
-            "opportunity_amount",
-            "sales_stage",
-            "modified"
-        ],
+        fields=["*"],   # ✅ ALL fields
         filters=filters,
         or_filters=or_filters,
         order_by=f"{sort_by} {sort_order}",
@@ -170,7 +260,7 @@ def list_opportunity(
     )
 
     # -------------------------
-    # TOTAL COUNT (supports OR)
+    # TOTAL COUNT (OR supported)
     # -------------------------
     total_count = len(
         frappe.get_all(
@@ -185,104 +275,176 @@ def list_opportunity(
 
     return {
         "status": "success",
-
-        # pagination info
         "page": page,
         "page_size": page_size,
         "total": total_count,
         "total_pages": total_pages,
-
-        # navigation helpers
         "next_page": page + 1 if page < total_pages else None,
         "prev_page": page - 1 if page > 1 else None,
-
-        # actual data
         "data": opportunities
     }
 
 
 
+# @frappe.whitelist()
+# def update_opportunity(opportunity_id=None, data=None):
+#     try:
+#         if not opportunity_id:
+#             frappe.throw(_("opportunity_id is required"))
 
+#         # Accept JSON body or form_dict
+#         if not data:
+#             data = frappe.form_dict
 
+#         if isinstance(data, str):
+#             data = frappe.parse_json(data)
 
+#         # Get existing Opportunity
+#         opp = frappe.get_doc("Opportunity", opportunity_id)
 
+#         # -------------------------
+#         # UPDATE opportunity_from FIRST
+#         # -------------------------
+#         if data.get("opportunity_from"):
+#             opp.opportunity_from = data.get("opportunity_from")
+
+#         opportunity_from = opp.opportunity_from
+#         party_name = data.get("party_name")
+#         email = data.get("contact_email")
+
+#         # -------------------------
+#         # PARTY HANDLING
+#         # -------------------------
+#         if party_name:
+#             if opportunity_from == "Lead":
+#                 # Look for Lead by email
+#                 lead_name = frappe.db.get_value("Lead", {"email_id": email})
+#                 if not lead_name:
+#                     # Create Lead if it does not exist
+#                     first_name = party_name.split()[0]
+#                     last_name = " ".join(party_name.split()[1:]) if len(party_name.split()) > 1 else ""
+#                     lead = frappe.get_doc({
+#                         "doctype": "Lead",
+#                         "first_name": first_name,
+#                         "last_name": last_name,
+#                         "email_id": email,
+#                         "mobile_no": data.get("contact_mobile"),
+#                         "company_name": data.get("organization_name"),
+#                         "status": "Lead"
+#                     })
+#                     lead.insert(ignore_permissions=True)
+#                     frappe.db.commit()
+#                     lead_name = lead.name
+
+#                 # Assign Lead record name to party (must be record name)
+#                 opp.party = lead_name
+#                 opp.party_name = party_name
+
+#             elif opportunity_from == "Customer":
+#                 if not frappe.db.exists("Customer", party_name):
+#                     frappe.throw(_("Customer '{0}' does not exist").format(party_name))
+#                 opp.party = party_name
+#                 opp.party_name = party_name
+
+#         # -------------------------
+#         # FIELD UPDATE (partial)
+#         # -------------------------
+#         skip_fields = ["name", "doctype", "items", "opportunity_id", "party_name"]
+#         for field, value in data.items():
+#             if field in skip_fields:
+#                 continue
+#             if opp.meta.get_field(field):
+#                 opp.set(field, value)
+
+#         # -------------------------
+#         # ITEMS UPDATE (replace)
+#         # -------------------------
+#         if "items" in data:
+#             opp.items = []
+#             for item in data.get("items", []):
+#                 opp.append("items", {
+#                     "item_code": item.get("item_code"),
+#                     "qty": item.get("qty"),
+#                     "rate": item.get("rate"),
+#                     "amount": item.get("amount")
+#                 })
+
+#         # Save and commit
+#         opp.save(ignore_permissions=True)
+#         frappe.db.commit()
+
+#         return {
+#             "status": "success",
+#             "status_code":200,
+#             "message": "Opportunity updated successfully",
+#             "opportunity_id": opp.name
+#         }
+
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "Update Opportunity API Error")
+#         return {
+#             "status": "error",
+#             "message": str(e)
+#         }
 
 @frappe.whitelist()
 def update_opportunity(opportunity_id=None, data=None):
+    import json
     try:
         if not opportunity_id:
             frappe.throw(_("opportunity_id is required"))
 
-        # Accept JSON body or form_dict
+        # -------------------------
+        # Ensure data is always a dict
+        # -------------------------
         if not data:
-            data = frappe.form_dict
+            parsed_data = {}
+        elif isinstance(data, str):
+            try:
+                parsed_data = json.loads(data)
+            except Exception:
+                frappe.throw(_("Invalid JSON payload"))
+        elif isinstance(data, dict):
+            parsed_data = data
+        else:
+            parsed_data = {}
 
-        if isinstance(data, str):
-            data = frappe.parse_json(data)
-
-        # Get existing Opportunity
+        # -------------------------
+        # Fetch Opportunity
+        # -------------------------
         opp = frappe.get_doc("Opportunity", opportunity_id)
 
-        # -------------------------
-        # UPDATE opportunity_from FIRST
-        # -------------------------
-        if data.get("opportunity_from"):
-            opp.opportunity_from = data.get("opportunity_from")
+        if not opp.party_name:
+            frappe.throw(_("Opportunity does not have a Lead/Customer assigned"))
 
-        opportunity_from = opp.opportunity_from
-        party_name = data.get("party_name")
-        email = data.get("contact_email")
+        linked_party = opp.party_name
 
-        # -------------------------
-        # PARTY HANDLING
-        # -------------------------
-        if party_name:
-            if opportunity_from == "Lead":
-                # Look for Lead by email
-                lead_name = frappe.db.get_value("Lead", {"email_id": email})
-                if not lead_name:
-                    # Create Lead if it does not exist
-                    first_name = party_name.split()[0]
-                    last_name = " ".join(party_name.split()[1:]) if len(party_name.split()) > 1 else ""
-                    lead = frappe.get_doc({
-                        "doctype": "Lead",
-                        "first_name": first_name,
-                        "last_name": last_name,
-                        "email_id": email,
-                        "mobile_no": data.get("contact_mobile"),
-                        "company_name": data.get("organization_name"),
-                        "status": "Lead"
-                    })
-                    lead.insert(ignore_permissions=True)
-                    frappe.db.commit()
-                    lead_name = lead.name
-
-                # Assign Lead record name to party (must be record name)
-                opp.party = lead_name
-                opp.party_name = party_name
-
-            elif opportunity_from == "Customer":
-                if not frappe.db.exists("Customer", party_name):
-                    frappe.throw(_("Customer '{0}' does not exist").format(party_name))
-                opp.party = party_name
-                opp.party_name = party_name
+        # Verify Lead or Customer exists
+        if opp.opportunity_from == "Lead":
+            if not frappe.db.exists("Lead", linked_party):
+                frappe.throw(_("Lead '{0}' does not exist").format(linked_party))
+        elif opp.opportunity_from == "Customer":
+            if not frappe.db.exists("Customer", linked_party):
+                frappe.throw(_("Customer '{0}' does not exist").format(linked_party))
 
         # -------------------------
-        # FIELD UPDATE (partial)
+        # Update other fields
         # -------------------------
-        skip_fields = ["name", "doctype", "items", "opportunity_id", "party_name"]
-        for field, value in data.items():
+        skip_fields = ["name", "doctype", "items", "opportunity_id", "party_name", "opportunity_from"]
+
+        for field, value in parsed_data.items():
             if field in skip_fields:
                 continue
             if opp.meta.get_field(field):
                 opp.set(field, value)
 
         # -------------------------
-        # ITEMS UPDATE (replace)
+        # Update items
         # -------------------------
-        if "items" in data:
+        items = parsed_data.get("items") or []
+        if isinstance(items, list):
             opp.items = []
-            for item in data.get("items", []):
+            for item in items:
                 opp.append("items", {
                     "item_code": item.get("item_code"),
                     "qty": item.get("qty"),
@@ -290,15 +452,18 @@ def update_opportunity(opportunity_id=None, data=None):
                     "amount": item.get("amount")
                 })
 
-        # Save and commit
+        # -------------------------
+        # Save
+        # -------------------------
         opp.save(ignore_permissions=True)
         frappe.db.commit()
 
         return {
             "status": "success",
-            "status_code":200,
+            "status_code": 200,
             "message": "Opportunity updated successfully",
-            "opportunity_id": opp.name
+            "opportunity_id": opp.name,
+            # "linked_party": linked_party
         }
 
     except Exception as e:
@@ -308,8 +473,7 @@ def update_opportunity(opportunity_id=None, data=None):
             "message": str(e)
         }
 
-
-
+        
 @frappe.whitelist()
 def delete_opportunity(opportunity_id=None):
     try:
@@ -380,6 +544,89 @@ def get_opportunity(name=None):
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Get Opportunity API Error")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+
+
+
+
+from frappe.utils import nowdate, add_days
+
+
+@frappe.whitelist()
+def create_quotation_from_opportunity(opportunity_id=None, valid_till=None, submit=0):
+    try:
+        if not opportunity_id:
+            frappe.throw(_("opportunity_id is required"))
+
+        submit = int(submit)
+
+        opp = frappe.get_doc("Opportunity", opportunity_id)
+
+        if not opp.items:
+            frappe.throw(_("Opportunity has no items"))
+
+        quotation = frappe.new_doc("Quotation")
+
+        quotation.opportunity = opp.name
+        quotation.company = opp.company
+        quotation.currency = opp.currency
+        quotation.conversion_rate = 1
+        quotation.transaction_date = nowdate()
+        quotation.valid_till = valid_till or add_days(nowdate(), 30)
+
+        quotation.selling_price_list = frappe.get_cached_value(
+            "Company", quotation.company, "default_selling_price_list"
+        )
+
+        # PARTY
+        if opp.opportunity_from == "Customer":
+            quotation.quotation_to = "Customer"
+            quotation.party_name = opp.party_name
+            quotation.customer_name = opp.customer_name
+
+        elif opp.opportunity_from == "Lead":
+            quotation.quotation_to = "Lead"
+            quotation.party_name = opp.party_name
+            quotation.lead_name = opp.party_name
+
+        else:
+            frappe.throw(_("Unsupported opportunity_from type"))
+
+        # ITEMS
+        for item in opp.items:
+            quotation.append("items", {
+                "item_code": item.item_code,
+                "item_name": item.item_name,
+                "description": item.description,
+                "qty": item.qty,
+                "rate": item.rate,
+                "amount": item.amount,
+                "uom": item.uom
+            })
+
+        # 🚫 NO TAX COPYING (Opportunity has none)
+
+        quotation.insert(ignore_permissions=True)
+
+        if submit:
+            quotation.submit()
+
+        frappe.db.commit()
+
+        return {
+            "status": "success",
+            "status_code": 201,
+            "message": "Opportunity converted to Quotation successfully",
+            "quotation_id": quotation.name
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Opportunity → Quotation API Error")
         return {
             "status": "error",
             "message": str(e)

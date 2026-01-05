@@ -455,3 +455,217 @@ def update_delivery_note(data=None):
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Delivery Note Update API")
         return {"status": "error", "message": str(e)}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@frappe.whitelist()
+def get_delivery_note_by_id(name):
+    """
+    Get Delivery Note details by ID (ERPNext Safe)
+    """
+
+    try:
+        if not name:
+            return {
+                "status": "error",
+                "message": "Delivery Note name is required"
+            }
+
+        dn = frappe.get_doc("Delivery Note", name)
+
+        return {
+            "status": "success",
+            "message":"Delivery Note Fetched Successfully",
+            "data": {
+                # -------------------------
+                # BASIC INFO
+                # -------------------------
+                "name": dn.name,
+                "posting_date": dn.posting_date,
+                "posting_time": dn.posting_time,
+                "customer": dn.customer,
+                "company": dn.company,
+                "status": dn.status,
+                "docstatus": dn.docstatus,
+                "currency": dn.currency,
+                "selling_price_list": dn.selling_price_list,
+                "conversion_rate": dn.conversion_rate,
+                "net_total": dn.net_total,
+                "grand_total": dn.grand_total,
+                "rounded_total": dn.rounded_total,
+                "total_taxes_and_charges": dn.total_taxes_and_charges,
+
+                # -------------------------
+                # WAREHOUSE / PROJECT
+                # -------------------------
+                "set_warehouse": dn.set_warehouse,
+                "project": dn.project,
+                "cost_center": dn.cost_center,
+
+                # -------------------------
+                # ADDRESS & CONTACT (VALID)
+                # -------------------------
+                "customer_address": dn.customer_address,
+                "shipping_address_name": dn.shipping_address_name,
+                "company_address": dn.company_address,
+                "contact_person": dn.contact_person,
+                # "place_of_supply": dn.place_of_supply,
+
+                # -------------------------
+                # TRANSPORT DETAILS
+                # -------------------------
+                "transporter": dn.transporter,
+                # "mode_of_transport": dn.mode_of_transport,
+                "vehicle_no": dn.vehicle_no,
+                "driver": dn.driver,
+                "driver_name": dn.driver_name,
+                # "distance": dn.distance,
+                "lr_no": dn.lr_no,
+                "lr_date": dn.lr_date,
+
+                # -------------------------
+                # ITEMS
+                # -------------------------
+                # -------------------------
+                # ITEMS (FINAL SAFE)
+                # -------------------------
+                "items": [
+                    {
+                        "name": item.name,
+                        "item_code": item.item_code,
+                        "item_name": item.item_name,
+                        "description": item.description,
+                        "qty": item.qty,
+                        "uom": item.uom,
+                        "rate": item.rate,
+                        "amount": item.amount,
+                        "warehouse": item.warehouse,
+
+                        # ✅ VALID REFERENCES
+                        "against_sales_order": item.against_sales_order,
+                        "against_sales_invoice": item.against_sales_invoice
+                    }
+                    for item in dn.items
+                ],
+
+
+                # -------------------------
+                # TAXES
+                # -------------------------
+                "taxes": [
+                    {
+                        "charge_type": tax.charge_type,
+                        "account_head": tax.account_head,
+                        "rate": tax.rate,
+                        "tax_amount": tax.tax_amount,
+                        "total": tax.total
+                    }
+                    for tax in dn.taxes
+                ],
+
+                # -------------------------
+                # SALES TEAM
+                # -------------------------
+                "sales_team": [
+                    {
+                        "sales_person": st.sales_person,
+                        "allocated_percentage": st.allocated_percentage,
+                        "allocated_amount": st.allocated_amount
+                    }
+                    for st in dn.sales_team
+                ],
+
+                # -------------------------
+                # META
+                # -------------------------
+                # "remarks": dn.remarks,
+                "terms": dn.terms,
+                "instructions": dn.instructions,
+                "owner": dn.owner,
+                "modified": dn.modified
+            }
+        }
+
+    except frappe.DoesNotExistError:
+        return {
+            "status": "error",
+            "message": "Delivery Note not found"
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Get Delivery Note By ID API")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+
+
+
+
+from frappe.utils import nowdate, nowtime
+
+@frappe.whitelist(methods=["POST"])
+def submit_delivery_note(name=None):
+    """
+    Submit a Delivery Note (Draft → Submitted)
+    Automatically sets selling_price_list if missing.
+    """
+    try:
+        if not name:
+            return {"status": "error", "message": "Delivery Note name is required"}
+
+        # Fetch the Delivery Note
+        dn = frappe.get_doc("Delivery Note", name)
+
+        # Only Draft Delivery Notes can be submitted
+        if dn.docstatus == 1:
+            return {"status": "error", "message": f"Delivery Note {name} is already submitted"}
+        elif dn.docstatus == 2:
+            return {"status": "error", "message": f"Delivery Note {name} is cancelled and cannot be submitted"}
+
+        # -------------------------------
+        # Set Selling Price List if missing
+        # -------------------------------
+        if not dn.selling_price_list:
+            default_price_list = frappe.db.get_value("Company", dn.company, "default_price_list")
+            if default_price_list:
+                dn.selling_price_list = default_price_list
+                dn.price_list_currency = frappe.db.get_value("Price List", default_price_list, "currency")
+            else:
+                return {
+                    "status": "error",
+                    "message": "No Selling Price List found. Please provide 'selling_price_list'"
+                }
+
+        # -------------------------------
+        # Submit the document
+        # -------------------------------
+        dn.submit()
+
+        return {
+            "status": "success",
+            "delivery_note": name,
+            "message": "Delivery Note submitted successfully"
+        }
+
+    except frappe.ValidationError as ve:
+        # Common ERPNext submission errors (stock, account, etc.)
+        frappe.log_error(frappe.get_traceback(), "Delivery Note Submit API")
+        return {"status": "error", "message": str(ve)}
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Delivery Note Submit API")
+        return {"status": "error", "message": str(e)}

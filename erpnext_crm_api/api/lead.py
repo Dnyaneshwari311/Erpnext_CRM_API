@@ -85,6 +85,90 @@ def create_lead(data=None):
 
 
 
+# @frappe.whitelist()
+# def list_leads(
+#     page=1,
+#     page_size=10,
+#     sort_by="modified",
+#     sort_order="desc",
+#     search=None,
+#     status=None,
+#     source=None
+# ):
+#     page = int(page)
+#     page_size = int(page_size)
+#     start = (page - 1) * page_size
+
+#     # AND filters
+#     filters = {}
+#     if status:
+#         filters["status"] = status
+#     if source:
+#         filters["source"] = source
+
+#     # OR filters (search)
+#     or_filters = []
+#     if search:
+#         or_filters = [
+#             ["Lead", "first_name", "like", f"%{search}%"],
+#             ["Lead", "last_name", "like", f"%{search}%"],
+#             ["Lead", "email_id", "like", f"%{search}%"],
+#             ["Lead", "mobile_no", "like", f"%{search}%"],
+#             ["Lead", "company_name", "like", f"%{search}%"],
+#         ]
+
+#     # ---- DATA QUERY ----
+#     leads = frappe.get_all(
+#         "Lead",
+#         fields=[
+#             "name",
+#             "first_name",
+#             "last_name",
+#             "status",
+#             "source",
+#             "email_id",
+#             "mobile_no",
+#             "company_name",
+#             "modified"
+#         ],
+#         filters=filters,
+#         or_filters=or_filters,
+#         order_by=f"{sort_by} {sort_order}",
+#         limit_start=start,
+#         limit_page_length=page_size
+#     )
+
+#     # ---- TOTAL COUNT (supports or_filters) ----
+#     total_count = len(
+#         frappe.get_all(
+#             "Lead",
+#             filters=filters,
+#             or_filters=or_filters,
+#             pluck="name"
+#         )
+#     )
+
+#     total_pages = (total_count + page_size - 1) // page_size
+
+#     return {
+#         "status": "success",
+
+#         # pagination info
+#         "page": page,
+#         "page_size": page_size,
+#         "total": total_count,
+#         "total_pages": total_pages,
+
+#         # navigation helpers
+        
+#         "next_page": page + 1 if page < total_pages else None,
+#         "prev_page": page - 1 if page > 1 else None,
+
+#         # actual data
+#         "data": leads
+#     }
+
+
 @frappe.whitelist()
 def list_leads(
     page=1,
@@ -99,14 +183,18 @@ def list_leads(
     page_size = int(page_size)
     start = (page - 1) * page_size
 
-    # AND filters
+    # -------------------
+    # AND Filters
+    # -------------------
     filters = {}
     if status:
         filters["status"] = status
     if source:
         filters["source"] = source
 
-    # OR filters (search)
+    # -------------------
+    # OR Filters (Search)
+    # -------------------
     or_filters = []
     if search:
         or_filters = [
@@ -117,20 +205,12 @@ def list_leads(
             ["Lead", "company_name", "like", f"%{search}%"],
         ]
 
-    # ---- DATA QUERY ----
+    # -------------------
+    # DATA QUERY (ALL FIELDS)
+    # -------------------
     leads = frappe.get_all(
         "Lead",
-        fields=[
-            "name",
-            "first_name",
-            "last_name",
-            "status",
-            "source",
-            "email_id",
-            "mobile_no",
-            "company_name",
-            "modified"
-        ],
+        fields=["*"],
         filters=filters,
         or_filters=or_filters,
         order_by=f"{sort_by} {sort_order}",
@@ -138,7 +218,9 @@ def list_leads(
         limit_page_length=page_size
     )
 
-    # ---- TOTAL COUNT (supports or_filters) ----
+    # -------------------
+    # TOTAL COUNT (FIXED)
+    # -------------------
     total_count = len(
         frappe.get_all(
             "Lead",
@@ -152,22 +234,14 @@ def list_leads(
 
     return {
         "status": "success",
-
-        # pagination info
         "page": page,
         "page_size": page_size,
         "total": total_count,
         "total_pages": total_pages,
-
-        # navigation helpers
-        
         "next_page": page + 1 if page < total_pages else None,
         "prev_page": page - 1 if page > 1 else None,
-
-        # actual data
         "data": leads
     }
-
 
 
 
