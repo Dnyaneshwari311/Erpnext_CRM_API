@@ -133,12 +133,32 @@ def create_quotation(data=None):
     doc.order_type = data.get("order_type")
     doc.quotation_to = data.get("quotation_to")  # Customer / Supplier
 
+    # party_name = data.get("customer")
+
+    # if not party_name:
+    #     frappe.throw("Customer / Supplier is required")
+
+    # # ❌ DO NOT CREATE CUSTOMER / SUPPLIER
+    # if doc.quotation_to == "Customer":
+    #     if not frappe.db.exists("Customer", party_name):
+    #         frappe.throw(f"Customer '{party_name}' does not exist")
+    #     doc.party_name = party_name
+
+    # elif doc.quotation_to == "Supplier":
+    #     if not frappe.db.exists("Supplier", party_name):
+    #         frappe.throw(f"Supplier '{party_name}' does not exist")
+    #     doc.party_name = party_name
+
+    # else:
+    #     frappe.throw("Invalid quotation_to value")
+    
+    
+    
     party_name = data.get("customer")
 
     if not party_name:
-        frappe.throw("Customer / Supplier is required")
+        frappe.throw("Customer / Lead / Supplier is required")
 
-    # ❌ DO NOT CREATE CUSTOMER / SUPPLIER
     if doc.quotation_to == "Customer":
         if not frappe.db.exists("Customer", party_name):
             frappe.throw(f"Customer '{party_name}' does not exist")
@@ -149,8 +169,18 @@ def create_quotation(data=None):
             frappe.throw(f"Supplier '{party_name}' does not exist")
         doc.party_name = party_name
 
+    elif doc.quotation_to == "Lead":
+        if not frappe.db.exists("Lead", party_name):
+            frappe.throw(f"Lead '{party_name}' does not exist")
+        doc.party_name = party_name
+        doc.lead = party_name   # 🔥 VERY IMPORTANT
+
     else:
         frappe.throw("Invalid quotation_to value")
+
+        
+        
+    
 
     doc.company = data.get("company")
     doc.status = data.get("status", "Draft")
