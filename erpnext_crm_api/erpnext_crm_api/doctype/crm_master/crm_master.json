@@ -1,0 +1,64 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-01-07 16:17:32.554038",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "master",
+  "key",
+  "value",
+  "sorting_order"
+ ],
+ "fields": [
+  {
+   "fieldname": "master",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Master"
+  },
+  {
+   "fieldname": "key",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Key"
+  },
+  {
+   "fieldname": "value",
+   "fieldtype": "Data",
+   "label": "Value"
+  },
+  {
+   "fieldname": "sorting_order",
+   "fieldtype": "Int",
+   "label": "Sorting Order"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-01-12 18:51:04.915199",
+ "modified_by": "Administrator",
+ "module": "ERPNext CRM API",
+ "name": "CRM Master",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "master,key,value",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
