@@ -345,4 +345,47 @@ def get_sales_invoice_by_id(name=None):
 
 
 
+@frappe.whitelist(methods=["POST"])
+def submit_sales_invoice(name=None):
+    """
+    Submit Sales Invoice (ERPNext Standard Flow)
+    """
+
+    # Accept name from body or params
+    name = name or frappe.form_dict.get("name")
+
+    if not name:
+        frappe.throw(_("Sales Invoice name is required"))
+
+    try:
+        si = frappe.get_doc("Sales Invoice", name)
+
+        # Validation
+        if si.docstatus == 1:
+            frappe.throw(_("Sales Invoice is already submitted"))
+
+        if si.docstatus == 2:
+            frappe.throw(_("Cannot submit a cancelled Sales Invoice"))
+
+        # Workflow check (if enabled)
+        if si.meta.has_field("workflow_state") and si.workflow_state:
+            if si.workflow_state not in ["Approved"]:
+                frappe.throw(_("Sales Invoice must be Approved before submission"))
+
+        # Submit
+        si.submit()
+
+        return {
+            "status": "success",
+            "status_code": 200,
+            "message": "Sales Invoice submitted successfully",
+            "sales_invoice": si.name
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Submit Sales Invoice API")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
 
