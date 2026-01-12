@@ -1,0 +1,412 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Open",
+  "master": "LEAD-STATUS",
+  "modified": "2026-01-07 17:59:46.879595",
+  "name": "r8mp3evkp6",
+  "sorting_order": 2,
+  "value": "Open"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Lead",
+  "master": "LEAD-STATUS",
+  "modified": "2026-01-07 17:58:00.233609",
+  "name": "sovcl6hdoc",
+  "sorting_order": 1,
+  "value": "Lead"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Replied",
+  "master": "LEAD-STATUS",
+  "modified": "2026-01-07 17:59:38.543772",
+  "name": "tbl4um4o8t",
+  "sorting_order": 3,
+  "value": "Replied"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Opportunity",
+  "master": "LEAD-STATUS",
+  "modified": "2026-01-07 17:58:55.113140",
+  "name": "to7raigm8u",
+  "sorting_order": 4,
+  "value": "Opportunity"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Quotation",
+  "master": "LEAD-STATUS",
+  "modified": "2026-01-07 17:58:42.234932",
+  "name": "uc1t6uhrfn",
+  "sorting_order": 5,
+  "value": "Quotation"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Lost Quotation",
+  "master": "LEAD-STATUS",
+  "modified": "2026-01-07 17:58:33.363568",
+  "name": "up73kkkq3c",
+  "sorting_order": 6,
+  "value": "Lost Quotation"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Interested",
+  "master": "LEAD-STATUS",
+  "modified": "2026-01-07 17:57:52.544844",
+  "name": "v4bnbrc66b",
+  "sorting_order": 7,
+  "value": "Interested"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Converted",
+  "master": "LEAD-STATUS",
+  "modified": "2026-01-07 17:58:08.702780",
+  "name": "15ct3pk17c",
+  "sorting_order": 8,
+  "value": "Converted"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Do Not Contact",
+  "master": "LEAD-STATUS",
+  "modified": "2026-01-07 17:58:17.381835",
+  "name": "1khes2ejat",
+  "sorting_order": 9,
+  "value": "Do Not Contact"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Open",
+  "master": "OPPORTUNITY-STATUS",
+  "modified": "2026-01-07 17:56:51.514682",
+  "name": "po71a8srgq",
+  "sorting_order": 1,
+  "value": "Open"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Quotation",
+  "master": "OPPORTUNITY-STATUS",
+  "modified": "2026-01-07 17:56:59.238756",
+  "name": "qa10736c0o",
+  "sorting_order": 2,
+  "value": "Quotation"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Converted Lost",
+  "master": "OPPORTUNITY-STATUS",
+  "modified": "2026-01-07 17:57:07.143357",
+  "name": "qt23u5k3bi",
+  "sorting_order": 3,
+  "value": "Converted Lost"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Lost",
+  "master": "OPPORTUNITY-STATUS",
+  "modified": "2026-01-07 17:57:16.125047",
+  "name": "rfkn3t0esv",
+  "sorting_order": 4,
+  "value": "Lost"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Replied",
+  "master": "OPPORTUNITY-STATUS",
+  "modified": "2026-01-07 17:57:24.320373",
+  "name": "rraui5vdn6",
+  "sorting_order": 5,
+  "value": "Replied"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Closed",
+  "master": "OPPORTUNITY-STATUS",
+  "modified": "2026-01-07 17:57:43.054429",
+  "name": "scp6b4cb9c",
+  "sorting_order": 6,
+  "value": "Closed"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Client",
+  "master": "LEAD-TYPE",
+  "modified": "2026-01-07 17:59:54.352217",
+  "name": "3k7bqj1s7j",
+  "sorting_order": 1,
+  "value": "Client"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Channel Partner",
+  "master": "LEAD-TYPE",
+  "modified": "2026-01-07 18:00:02.929863",
+  "name": "4008olo3hl",
+  "sorting_order": 2,
+  "value": "Channel Partner"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Consultant",
+  "master": "LEAD-TYPE",
+  "modified": "2026-01-07 18:00:11.812054",
+  "name": "4b71nf2lvf",
+  "sorting_order": 3,
+  "value": "Consultant"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Product Enquiry",
+  "master": "LEAD-REQUEST-TYPE",
+  "modified": "2026-01-07 18:01:57.315187",
+  "name": "dj5nt4infh",
+  "sorting_order": 1,
+  "value": "Product Enquiry"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Request for Information",
+  "master": "LEAD-REQUEST-TYPE",
+  "modified": "2026-01-07 18:03:26.360502",
+  "name": "eev7167aop",
+  "sorting_order": 2,
+  "value": "Request for Information"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Suggestions",
+  "master": "LEAD-REQUEST-TYPE",
+  "modified": "2026-01-07 18:03:55.875226",
+  "name": "eo6dcu5dlb",
+  "sorting_order": 3,
+  "value": "Suggestions"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Other",
+  "master": "LEAD-REQUEST-TYPE",
+  "modified": "2026-01-07 18:04:37.551289",
+  "name": "f575fl3jga",
+  "sorting_order": 4,
+  "value": "Other"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "1-10",
+  "master": "LEAD-NO-OF-EMPLOYEES",
+  "modified": "2026-01-07 18:07:33.105145",
+  "name": "gs3gkooqcf",
+  "sorting_order": 1,
+  "value": "1-10"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "11-50",
+  "master": "LEAD-NO-OF-EMPLOYEES",
+  "modified": "2026-01-07 18:08:00.084634",
+  "name": "h4gemtk0ab",
+  "sorting_order": 2,
+  "value": "11-50"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "51-200",
+  "master": "LEAD-NO-OF-EMPLOYEES",
+  "modified": "2026-01-07 18:08:24.612009",
+  "name": "hc6a4r4uog",
+  "sorting_order": 3,
+  "value": "51-200"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "201-500",
+  "master": "LEAD-NO-OF-EMPLOYEES",
+  "modified": "2026-01-07 18:09:14.673673",
+  "name": "hrqkp5gpup",
+  "sorting_order": 4,
+  "value": "201-500"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "1000+",
+  "master": "LEAD-NO-OF-EMPLOYEES",
+  "modified": "2026-01-07 18:09:40.375982",
+  "name": "i3r50kj38s",
+  "sorting_order": 5,
+  "value": "1000+"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "1-10",
+  "master": "OPPORTUNITY-NO-OF-EMPLOYEES",
+  "modified": "2026-01-07 18:17:48.681893",
+  "name": "mse8ooi57p",
+  "sorting_order": 1,
+  "value": "1-10"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "11-50",
+  "master": "OPPORTUNITY-NO-OF-EMPLOYEES",
+  "modified": "2026-01-07 18:18:25.901342",
+  "name": "n83mvirkkp",
+  "sorting_order": 2,
+  "value": "11-50"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "51-200",
+  "master": "OPPORTUNITY-NO-OF-EMPLOYEES",
+  "modified": "2026-01-07 18:18:51.043908",
+  "name": "nfut4om4dn",
+  "sorting_order": 3,
+  "value": "51-200"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "201-500",
+  "master": "OPPORTUNITY-NO-OF-EMPLOYEES",
+  "modified": "2026-01-07 18:19:23.626869",
+  "name": "nq4vb4e7du",
+  "sorting_order": 4,
+  "value": "201-500"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "501-1000",
+  "master": "OPPORTUNITY-NO-OF-EMPLOYEES",
+  "modified": "2026-01-07 18:19:50.685287",
+  "name": "o2iihn4nh2",
+  "sorting_order": 5,
+  "value": "501-1000"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "1000+",
+  "master": "501-1000",
+  "modified": "2026-01-07 18:20:17.444013",
+  "name": "oaugj4scib",
+  "sorting_order": 6,
+  "value": "1000+"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Sales",
+  "master": "QUOTATION-ORDER_TYPE",
+  "modified": "2026-01-08 19:12:33.021672",
+  "name": "2mq67q5gb8",
+  "sorting_order": 1,
+  "value": "Sales"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Maintenance",
+  "master": "QUOTATION-ORDER_TYPE",
+  "modified": "2026-01-08 19:12:56.962118",
+  "name": "2u9860ak4j",
+  "sorting_order": 2,
+  "value": "Maintenance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Shopping Cart",
+  "master": "UOTATION-ORDER_TYPE",
+  "modified": "2026-01-08 19:13:24.818048",
+  "name": "370ug53jlo",
+  "sorting_order": 3,
+  "value": "Shopping Cart"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Grand Total",
+  "master": "QUOTATION-APPLY-ADDITIONAL-DISCOUNT-ON",
+  "modified": "2026-01-08 19:16:08.327737",
+  "name": "4q3gshkm3p",
+  "sorting_order": 1,
+  "value": "Grand Total"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Net Total",
+  "master": "QUOTATION-APPLY-ADDITIONAL-DISCOUNT-ON",
+  "modified": "2026-01-08 19:16:31.795569",
+  "name": "51d2ho4237",
+  "sorting_order": 2,
+  "value": "Net Total"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Sales",
+  "master": "SALES-ORDER-ORDER-TYPE",
+  "modified": "2026-01-09 09:53:43.800141",
+  "name": "70uvjnlqd1",
+  "sorting_order": 1,
+  "value": "Sales"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Maintenance",
+  "master": "SALES-ORDER-ORDER-TYPE",
+  "modified": "2026-01-09 09:54:22.714956",
+  "name": "7d3433ttfu",
+  "sorting_order": 2,
+  "value": "Maintenance "
+ },
+ {
+  "docstatus": 0,
+  "doctype": "CRM Master",
+  "key": "Shopping Cart",
+  "master": "SALES-ORDER-ORDER-TYPE",
+  "modified": "2026-01-09 09:54:47.948588",
+  "name": "7kveqq9q23",
+  "sorting_order": 3,
+  "value": "Shopping Cart"
+ }
+]
