@@ -796,3 +796,32 @@ def create_sales_order_from_quotation(quotation_name=None, submit=0):
             "status": "error",
             "message": str(e)
         }
+
+
+
+
+
+from frappe.utils.pdf import get_pdf
+
+@frappe.whitelist(allow_guest=True)
+def download_quotation_pdf(quotation_name):
+    """
+    Download Quotation PDF using custom print format
+    """
+
+    if not quotation_name:
+        frappe.throw("Quotation name is required")
+
+    html = frappe.get_print(
+        doctype="Quotation",
+        name=quotation_name,
+        print_format="Print Format For Quotation",  # <-- your print format name
+        as_pdf=False
+    )
+
+    pdf_data = get_pdf(html)
+
+    frappe.local.response = frappe._dict()
+    frappe.local.response.filecontent = pdf_data
+    frappe.local.response.filename = f"QUOTATION_{quotation_name}.pdf"
+    frappe.local.response.type = "download"

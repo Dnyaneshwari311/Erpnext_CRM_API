@@ -389,3 +389,42 @@ def submit_sales_invoice(name=None):
             "message": str(e)
         }
 
+
+
+
+
+
+
+
+
+
+
+from frappe.utils.pdf import get_pdf
+
+
+@frappe.whitelist(allow_guest=True)
+def download_sales_invoice_pdf(sales_invoice_name):
+    """
+    Download Sales Invoice PDF using custom print format
+    """
+
+    if not sales_invoice_name:
+        frappe.throw("Sales Invoice name is required")
+
+    # Render HTML from Print Format
+    html = frappe.get_print(
+        doctype="Sales Invoice",
+        name=sales_invoice_name,
+        print_format="Print Format For Sales Invoice",  # <-- your custom print format
+        as_pdf=False
+    )
+
+    # Convert HTML → PDF
+    pdf_data = get_pdf(html)
+
+    # Send PDF as download response
+    frappe.local.response = frappe._dict({
+        "filecontent": pdf_data,
+        "filename": f"SALES_INVOICE_{sales_invoice_name}.pdf",
+        "type": "download"
+    })
