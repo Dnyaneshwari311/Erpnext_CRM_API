@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from erpnext_crm_api.api.utils import api_response, api_error
 
 @frappe.whitelist()
 def create_opportunity(data=None):
@@ -22,7 +23,8 @@ def create_opportunity(data=None):
 
         for field in required_fields:
             if not data.get(field):
-                frappe.throw(_(f"{field} is required"))
+                # frappe.throw(_(f"{field} is required"))
+                return api_error(f"{field} is required", 400)
 
         opp = frappe.new_doc("Opportunity")
 
@@ -77,21 +79,15 @@ def create_opportunity(data=None):
 
         opp.insert(ignore_permissions=True)
         frappe.db.commit()
-
-        return {
-            "status": "success",
-            "status_code":201,
-            "message": "Opportunity created successfully",
-            "opportunity_id": opp.name
-        }
+        return api_response(
+            data={"opportunity_id": opp.name},
+            message="Opportunity created successfully",
+            flatten=True
+        )
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Create Opportunity API Error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
-
+        return api_error(str(e), 403)
 
 
 
@@ -392,7 +388,8 @@ def update_opportunity(opportunity_id=None, data=None):
     import json
     try:
         if not opportunity_id:
-            frappe.throw(_("opportunity_id is required"))
+            # frappe.throw(_("opportunity_id is required"))
+            return api_error("opportunity_id is required", 400)
 
         # -------------------------
         # Ensure data is always a dict
@@ -415,7 +412,8 @@ def update_opportunity(opportunity_id=None, data=None):
         opp = frappe.get_doc("Opportunity", opportunity_id)
 
         if not opp.party_name:
-            frappe.throw(_("Opportunity does not have a Lead/Customer assigned"))
+            # frappe.throw(_("Opportunity does not have a Lead/Customer assigned"))
+            return api_error("Opportunity does not have a Lead/Customer assigned", 400)
 
         linked_party = opp.party_name
 
@@ -457,28 +455,23 @@ def update_opportunity(opportunity_id=None, data=None):
         # -------------------------
         opp.save(ignore_permissions=True)
         frappe.db.commit()
-
-        return {
-            "status": "success",
-            "status_code": 200,
-            "message": "Opportunity updated successfully",
-            "opportunity_id": opp.name,
-            # "linked_party": linked_party
-        }
+        return api_response(
+            data={"opportunity_id": opp.name},
+            message="Opportunity updated successfully",
+            flatten=True
+        )
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Update Opportunity API Error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        return api_error(str(e), 403)
 
         
 @frappe.whitelist()
 def delete_opportunity(opportunity_id=None):
     try:
         if not opportunity_id:
-            frappe.throw(_("opportunity_id is required"))
+            # frappe.throw(_("opportunity_id is required"))
+            return api_error("opportunity_id is required", 400)
 
         frappe.delete_doc(
             "Opportunity",
@@ -486,20 +479,15 @@ def delete_opportunity(opportunity_id=None):
             ignore_permissions=True
         )
         frappe.db.commit()
-
-        return {
-            "status": "success",
-            "status_code":200,
-            "message": "Opportunity deleted successfully",
-            "opportunity_id": opportunity_id
-        }
+        return api_response(
+            data={"opportunity_id": opportunity_id},
+            message="Opportunity deleted successfully",
+            flatten=True
+        )
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Delete Opportunity API Error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        return api_error(str(e), 403)
 
 
 
@@ -518,7 +506,7 @@ def get_opportunity(name=None):
     """
     try:
         if not name:
-            frappe.throw(_("name is required"))
+            return api_error("name is required", 400)
 
         # Fetch Opportunity
         opp = frappe.get_doc("Opportunity", name)
@@ -528,26 +516,21 @@ def get_opportunity(name=None):
 
         # Ensure items are included
         data["items"] = [item.as_dict() for item in opp.items]
-
-        return {
-            "status": "success",
-            "message": "Opportunity fetched successfully",
-            "name": opp.name,   # ✅ explicitly returning name
-            "data": data
-        }
+        return api_response(
+            data={
+                "name": opp.name,
+                "data": data
+            },
+            message="Opportunity fetched successfully",
+            flatten=True
+        )
 
     except frappe.DoesNotExistError:
-        return {
-            "status": "error",
-            "message": _("Opportunity with name '{0}' does not exist").format(name)
-        }
+        return api_error(f"Opportunity with name '{name}' does not exist", 403)
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Get Opportunity API Error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        return api_error(str(e), 403)
 
 
 
@@ -561,14 +544,14 @@ from frappe.utils import nowdate, add_days
 def create_quotation_from_opportunity(opportunity_id=None, valid_till=None, submit=0):
     try:
         if not opportunity_id:
-            frappe.throw(_("opportunity_id is required"))
+            return api_error("opportunity_id is required", 400)
 
         submit = int(submit)
 
         opp = frappe.get_doc("Opportunity", opportunity_id)
 
         if not opp.items:
-            frappe.throw(_("Opportunity has no items"))
+            return api_error("Opportunity has no items", 400)
 
         quotation = frappe.new_doc("Quotation")
 
@@ -595,7 +578,7 @@ def create_quotation_from_opportunity(opportunity_id=None, valid_till=None, subm
             quotation.lead_name = opp.party_name
 
         else:
-            frappe.throw(_("Unsupported opportunity_from type"))
+            return api_error("Unsupported opportunity_from type", 400)
 
         # ITEMS
         for item in opp.items:
@@ -617,17 +600,13 @@ def create_quotation_from_opportunity(opportunity_id=None, valid_till=None, subm
             quotation.submit()
 
         frappe.db.commit()
-
-        return {
-            "status": "success",
-            "status_code": 201,
-            "message": "Opportunity converted to Quotation successfully",
-            "quotation_id": quotation.name
-        }
+        return api_response(
+            data={"quotation_id": quotation.name},
+            message="Opportunity converted to Quotation successfully",
+            flatten=True,
+            status_code=201
+        )
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Opportunity → Quotation API Error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        return api_error(str(e), 403)

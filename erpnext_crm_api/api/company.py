@@ -1,34 +1,7 @@
-# import frappe
-
-
-
-# @frappe.whitelist(allow_guest=False)
-# def get_company_list():
-#     companies = frappe.get_all(
-#         "Company",
-#         fields=[
-#             "name",
-#             "company_name",
-#             "abbr",
-#             "default_currency",
-#             "country",
-#             "is_group",
-#             "parent_company"
-#         ],
-#         order_by="company_name"
-#     )
-
-#     return {
-#         "status": "success",
-#         "message":"Company List Fetched Successfully",
-#         "count": len(companies),
-#         "data": companies
-#     }
-
-
-
 import frappe
 from frappe import _
+from erpnext_crm_api.api.utils import api_response, api_error
+
 
 @frappe.whitelist(allow_guest=False)
 def get_company_list(
@@ -94,14 +67,15 @@ def get_company_list(
         limit_page_length=page_size
     )
 
-    return {
-        "status": "success",
-        "message": _("Company List Fetched Successfully"),
-        "pagination": {
-            "page": page,
-            "page_size": page_size,
-            "total_records": total_count,
-            "total_pages": (total_count + page_size - 1) // page_size
-        },
+    return api_response(
+    data={
+        "page": page,
+        "page_size": page_size,
+        "total_records": total_count,
+        "total_pages": (total_count + page_size - 1) // page_size,
         "data": companies
-    }
+    },
+    message=_("Company List Fetched Successfully"),
+    status_code=200,
+    flatten=True
+)

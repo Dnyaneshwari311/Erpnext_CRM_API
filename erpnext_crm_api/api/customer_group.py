@@ -1,28 +1,8 @@
-
-
-# import frappe
-# from frappe import _
-
-# @frappe.whitelist(allow_guest=True)
-# def get_customer_groups():
-#     """
-#     Returns list of customer groups with their details.
-#     """
-#     groups = frappe.get_all(
-#         "Customer Group",
-#         fields=["name", "parent_customer_group", "is_group"]
-#     )
-    
-#     return {"status": "success", 
-#             "message":"Customer Group List Fetched Successfully",
-#             "data": groups}
-
-
-
-
-
 import frappe
 from frappe import _
+from erpnext_crm_api.api.utils import api_response, api_error
+
+
 
 @frappe.whitelist(allow_guest=True)
 def get_customer_groups(
@@ -105,17 +85,31 @@ def get_customer_groups(
         # ---------------------------
         # Response
         # ---------------------------
-        return {
-            "status": "success",
-            "message": _("Customer Group List Fetched Successfully"),
-            "pagination": None if full else {
+        response_data = {
+            "data": groups
+        }
+
+        if not full:
+            response_data.update({
                 "page": page,
                 "page_size": page_size,
                 "total_records": total_count,
                 "total_pages": (total_count + page_size - 1) // page_size
-            },
-            "data": groups
-        }
+            })
+
+        return api_response(
+            data=response_data,
+            message=_("Customer Group List Fetched Successfully"),
+            status_code=200,
+            flatten=True
+        )
+
 
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        # return {"status": "error", "message": str(e)}
+        return api_error(
+            message=str(e), 
+            status_code=403
+        )
+
+        

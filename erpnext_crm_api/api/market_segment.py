@@ -1,28 +1,7 @@
-# import frappe
-
-# @frappe.whitelist(allow_guest=False)
-# def get_market_segment_list():
-#     segments = frappe.get_all(
-#         "Market Segment",
-#         fields=["name"],
-#         order_by="name"
-#     )
-
-#     return {
-#         "status": "success",
-#         "message":"Market Segment List Fetched Successfully",
-#         "count": len(segments),
-#         "data": segments
-#     }
-
-
-
-
-
-
-
 import frappe
 from frappe import _
+from erpnext_crm_api.api.utils import api_response, api_error
+
 
 @frappe.whitelist(allow_guest=False)
 def get_market_segment_list(
@@ -92,14 +71,15 @@ def get_market_segment_list(
     # ---------------------------
     # Response
     # ---------------------------
-    return {
-        "status": "success",
-        "message": _("Market Segment List Fetched Successfully"),
-        "pagination": {
-            "page": page,
-            "page_size": page_size,
-            "total_records": total_count,
-            "total_pages": (total_count + page_size - 1) // page_size
-        },
+    return api_response(
+    data={
+        "page": page,
+        "page_size": page_size,
+        "total_records": total_count,
+        "total_pages": (total_count + page_size - 1) // page_size,
         "data": segments
-    }
+    },
+    message=_("Market Segment List Fetched Successfully"),
+    status_code=200,
+    flatten=True
+)

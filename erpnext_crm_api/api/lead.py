@@ -1,6 +1,8 @@
 import frappe
 import json
 from frappe import _
+from erpnext_crm_api.api.utils import api_response, api_error
+
 
 @frappe.whitelist()
 def create_lead(data=None):
@@ -14,10 +16,10 @@ def create_lead(data=None):
 
     # Mandatory validation
     if not data.get("first_name"):
-        frappe.throw("first_name is required")
+        api_error("first_name is required", 400)
 
     if not data.get("status"):
-        frappe.throw("status is required")
+        api_error("status is required", 400)
 
     lead = frappe.new_doc("Lead")
 
@@ -70,12 +72,11 @@ def create_lead(data=None):
 
     lead.insert(ignore_permissions=True)
 
-    return {
-        "status": "success",
-        "status_code":201,
-        "lead_id": lead.name,
-        "message":"lead Created Successfully"
-    }
+    return api_response(
+        data={"lead_id": lead.name},
+        message="Lead created successfully",
+        status_code=201
+    )
 
 
 
@@ -231,9 +232,8 @@ def list_leads(
     )
 
     total_pages = (total_count + page_size - 1) // page_size
-
-    return {
-        "status": "success",
+    return api_response(
+    data={
         "page": page,
         "page_size": page_size,
         "total": total_count,
@@ -241,7 +241,11 @@ def list_leads(
         "next_page": page + 1 if page < total_pages else None,
         "prev_page": page - 1 if page > 1 else None,
         "data": leads
-    }
+    },
+    message="Leads fetched successfully",
+    status_code=200,
+    flatten=True
+)
 
 
 
@@ -257,11 +261,11 @@ def update_lead():
     try:
         data = json.loads(frappe.request.data or "{}")
     except Exception:
-        frappe.throw("Invalid JSON payload")
+        return api_error("Invalid JSON payload", 400)
 
     lead_name = data.get("name")
     if not lead_name:
-        frappe.throw("Lead name is required")
+        return api_error("Lead name is required", 400)
 
     # Fetch Lead
     lead = frappe.get_doc("Lead", lead_name)
@@ -311,12 +315,11 @@ def update_lead():
     lead.save(ignore_permissions=True)
     frappe.db.commit()
 
-    return {
-        "status": "success",
-        "status_code":200,
-        "lead_id": lead.name,
-        "message": "Lead updated successfully"
-    }
+    return api_response(
+        data={"lead_id": lead.name},
+        message="Lead updated successfully",
+        flatten=True,
+    )
 
 
 

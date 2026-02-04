@@ -1,36 +1,6 @@
-# import frappe
-
-
-
-# @frappe.whitelist(allow_guest=False)
-# def get_language_list():
-#     languages = frappe.get_all(
-#         "Language",
-#         fields=[
-#             "name",
-#             "language_name",
-#             "language_code",
-#             "enabled"
-#         ],
-#         filters={"enabled": 1},
-#         order_by="language_name"
-#     )
-
-#     return {
-#         "status": "success",
-#         "message":"Language List Fetched Successfully",
-#         "count": len(languages),
-#         "data": languages
-#     }
-
-
-
-
-
-
-
 import frappe
 from frappe import _
+from erpnext_crm_api.api.utils import api_response, api_error
 
 @frappe.whitelist(allow_guest=False)
 def get_language_list(
@@ -110,14 +80,15 @@ def get_language_list(
     # ---------------------------
     # Response
     # ---------------------------
-    return {
-        "status": "success",
-        "message": _("Language List Fetched Successfully"),
-        "pagination": {
+    return api_response(
+        data={
             "page": page,
             "page_size": page_size,
             "total_records": total_count,
-            "total_pages": (total_count + page_size - 1) // page_size
+            "total_pages": (total_count + page_size - 1) // page_size,
+            "data": languages
         },
-        "data": languages
-    }
+        message=_("Language List Fetched Successfully"),
+        status_code=200,
+        flatten=True
+    )

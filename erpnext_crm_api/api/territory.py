@@ -1,39 +1,6 @@
-# import frappe
-
-
-# @frappe.whitelist(allow_guest=False)
-# def get_territory_list():
-#     """
-#     Returns all territories in ERP hierarchy order
-#     """
-
-#     territories = frappe.get_all(
-#         "Territory",
-#         fields=[
-#             "name",
-#             "parent_territory",
-#             "is_group",
-#             "lft",
-#             "rgt"
-#         ],
-#         order_by="lft"
-#     )
-
-#     return {
-#         "status": "success",
-#         "message":"Territory List Fetched Successfully",
-#         "count": len(territories),
-#         "data": territories
-#     }
-
-
-
-
-
-
-
 import frappe
 from frappe import _
+from erpnext_crm_api.api.utils import api_response, api_error
 
 @frappe.whitelist(allow_guest=False)
 def get_territory_list(
@@ -115,14 +82,15 @@ def get_territory_list(
     # ---------------------------
     # Response
     # ---------------------------
-    return {
-        "status": "success",
-        "message": _("Territory List Fetched Successfully"),
-        "pagination": {
-            "page": page,
-            "page_size": page_size,
-            "total_records": total_count,
-            "total_pages": (total_count + page_size - 1) // page_size
-        },
+    return api_response(
+    data={
+        "page": page,
+        "page_size": page_size,
+        "total_records": total_count,
+        "total_pages": (total_count + page_size - 1) // page_size,
         "data": territories
-    }
+    },
+    message=_("Territory List Fetched Successfully"),
+    status_code=200,
+    flatten=True
+)

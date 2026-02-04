@@ -1,32 +1,8 @@
-# import frappe 
-
-
-# @frappe.whitelist(allow_guest=False)
-# def get_country_list():
-#     countries = frappe.get_all(
-#         "Country",
-#         fields=[
-#             "name",
-#             "code",
-#             "date_format",
-#             "time_format",
-#             "time_zones"
-#         ],
-#         order_by="name"
-#     )
-
-#     return {
-#         "status": "success",
-#         "message":"Country List Fetched Successfully",
-#         "count": len(countries),
-#         "data": countries
-#     }
-
-
-
-
 import frappe
 from frappe import _
+from erpnext_crm_api.api.utils import api_response, api_error
+
+
 
 @frappe.whitelist(allow_guest=False)
 def get_country_list(
@@ -109,14 +85,15 @@ def get_country_list(
     # ---------------------------
     # Response
     # ---------------------------
-    return {
-        "status": "success",
-        "message": _("Country List Fetched Successfully"),
-        "pagination": {
-            "page": page,
-            "page_size": page_size,
-            "total_records": total_count,
-            "total_pages": (total_count + page_size - 1) // page_size
-        },
+    return api_response(
+    data={
+        "page": page,
+        "page_size": page_size,
+        "total_records": total_count,
+        "total_pages": (total_count + page_size - 1) // page_size,
         "data": countries
-    }
+    },
+    message=_("Country List Fetched Successfully"),
+    status_code=200,
+    flatten=True
+)

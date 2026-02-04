@@ -1,33 +1,7 @@
-# import frappe
-
-
-# @frappe.whitelist(allow_guest=False)
-# def get_opportunity_type_list():
-#     """
-#     Returns Opportunity Type master records as {id, name, description}
-#     """
-
-#     types = frappe.get_all(
-#         "Opportunity Type",  # This is the DocType name in your screenshot
-#         fields=["name", "description"],
-#         order_by="name"
-#     )
-
-#     # Map name → id, for dropdown-friendly API
-#     data = [{"id": t["name"], "name": t["name"], "description": t.get("description", "")} for t in types]
-
-#     return {
-#         "status": "success",
-#         "message":"Opportunity Type List Fetched Successfully",
-#         "count": len(data),
-#         "data": data
-#     }
-
-
-
-
 import frappe
 from frappe import _
+from erpnext_crm_api.api.utils import api_response, api_error
+
 
 @frappe.whitelist(allow_guest=False)
 def get_opportunity_type_list(
@@ -111,14 +85,17 @@ def get_opportunity_type_list(
     # ---------------------------
     # Response
     # ---------------------------
-    return {
-        "status": "success",
-        "message": _("Opportunity Type List Fetched Successfully"),
-        "pagination": {
-            "page": page,
-            "page_size": page_size,
-            "total_records": total_count,
-            "total_pages": (total_count + page_size - 1) // page_size
-        },
+  
+    return api_response(
+    data={
+        "page": page,
+        "page_size": page_size,
+        "total_records": total_count,
+        "total_pages": (total_count + page_size - 1) // page_size,
         "data": data
-    }
+    },
+    message=_("Opportunity Type List Fetched Successfully"),
+    status_code=200,
+    flatten=True
+)
+

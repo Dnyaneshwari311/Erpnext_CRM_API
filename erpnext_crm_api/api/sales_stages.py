@@ -1,39 +1,7 @@
-# import frappe
-
-
-
-# @frappe.whitelist(allow_guest=False)
-# def get_sales_stage_list():
-#     """
-#     Returns all Sales Stages as {id, name, description, probability}
-#     """
-
-#     stages = frappe.get_all(
-#         "Sales Stage",
-#         fields=["name"],
-#         order_by="idx"  # Default order in ERPNext
-#     )
-
-#     data = [
-#         {
-#             "id": s["name"],
-#             "name": s["name"]
-#         }
-#         for s in stages
-#     ]
-
-#     return {
-#         "status": "success",
-#         "message":"Sales stages List Fetched Successfully",
-#         "count": len(data),
-#         "data": data
-#     }
-
-
-
-
 import frappe
 from frappe import _
+from erpnext_crm_api.api.utils import api_response, api_error
+
 
 @frappe.whitelist(allow_guest=False)
 def get_sales_stage_list(
@@ -115,14 +83,15 @@ def get_sales_stage_list(
     # ---------------------------
     # Response
     # ---------------------------
-    return {
-        "status": "success",
-        "message": _("Sales Stages List Fetched Successfully"),
-        "pagination": {
-            "page": page,
-            "page_size": page_size,
-            "total_records": total_count,
-            "total_pages": (total_count + page_size - 1) // page_size
-        },
+    return api_response(
+    data={
+        "page": page,
+        "page_size": page_size,
+        "total_records": total_count,
+        "total_pages": (total_count + page_size - 1) // page_size,
         "data": data
-    }
+    },
+    message=_("Sales Stages List Fetched Successfully"),
+    status_code=200,
+    flatten=True
+)
