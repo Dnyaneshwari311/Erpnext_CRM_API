@@ -1,55 +1,7 @@
-# import frappe
-# @frappe.whitelist(allow_guest=False)
-# def get_full_user_list():
-#     """
-#     Returns full user details with roles
-#     """
-
-#     users = frappe.db.sql("""
-#         SELECT
-#             u.name,
-#             u.email,
-#             u.first_name,
-#             u.last_name,
-#             u.full_name,
-#             u.username,
-#             u.mobile_no,
-#             u.phone,
-#             u.location,
-#             u.user_type,
-#             u.enabled,
-#             u.time_zone,
-#             u.language,
-#             u.last_login,
-#             u.creation,
-#             u.modified
-#         FROM `tabUser` u
-#         WHERE u.enabled = 1
-#         ORDER BY u.full_name
-#     """, as_dict=True)
-
-#     # Fetch roles per user
-#     for user in users:
-#         user["roles"] = frappe.get_all(
-#             "Has Role",
-#             filters={"parent": user["name"]},
-#             pluck="role"
-#         )
-
-#     return {
-#         "status": "success",
-#          "message":"User List Fetched Successfully",
-#         "count": len(users),
-#         "data": users
-#     }
-
-
-
-
-
-
 import frappe
 from frappe import _
+from erpnext_crm_api.api.utils import api_response, api_error
+
 
 @frappe.whitelist(allow_guest=False)
 def get_full_user_list(
@@ -154,18 +106,15 @@ def get_full_user_list(
             filters={"parent": user["name"]},
             pluck="role"
         )
-
-    # ---------------------------
-    # Response
-    # ---------------------------
-    return {
-        "status": "success",
-        "message": _("User List Fetched Successfully"),
-        "pagination": {
+    return api_response(
+        data={
             "page": page,
             "page_size": page_size,
             "total_records": total_count,
-            "total_pages": (total_count + page_size - 1) // page_size
+            "total_pages": (total_count + page_size - 1) // page_size,
+            "data": users
         },
-        "data": users
-    }
+        message=_("User List Fetched Successfully"),
+        status_code=200,
+        flatten=True
+    )

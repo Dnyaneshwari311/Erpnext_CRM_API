@@ -1,4 +1,7 @@
 import frappe
+from frappe import _
+from erpnext_crm_api.api.utils import api_response, api_error
+
 
 @frappe.whitelist(methods=["POST"])
 def create_sales_order(data=None):
@@ -71,18 +74,19 @@ def create_sales_order(data=None):
 
         so.insert(ignore_permissions=True)
 
-        return {
-            "status": "success",
-            "status_code":201,
-            "message": "Sales Order created",
-            "sales_order": so.name,
-            # "docstatus": so.docstatus
-        }
+        return api_response(
+            data={
+                "sales_order": so.name
+            },
+            message=_("Sales Order created"),
+            status_code=201,
+            flatten=True
+        )
+
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Sales Order Create Error")
-        return {"status": "error", "message": str(e)}
-
+        return api_error(str(e), 403)
 
 
 
@@ -109,10 +113,7 @@ def update_sales_order(data=None):
         so = frappe.get_doc("Sales Order", data.get("name"))
 
         if so.docstatus != 0:
-            return {
-                "status": "error",
-                "message": "Only Draft Sales Orders can be updated"
-            }
+            return api_error("Only Draft Sales Orders can be updated",403)
 
         # 🔹 UPDATE BASIC FIELDS
         for field in [
@@ -137,16 +138,17 @@ def update_sales_order(data=None):
 
         so.save(ignore_permissions=True)
 
-        return {
-            "status": "success",
-            "status_code":200,
-            "message": "Sales Order updated",
-            "sales_order": so.name
-        }
+        return api_response(
+            data={
+                "sales_order": so.name
+            },
+            message=_("Sales Order updated"),
+            status_code=200,
+            flatten=True
+        )
 
     except Exception as e:
-        return {"status": "error", "message": str(e)}
-
+         return api_error(str(e), 403)
 
 
 
@@ -232,8 +234,8 @@ def list_sales_orders(
 
     total_pages = (total + page_size - 1) // page_size
 
-    return {
-        "status": "success",
+    return api_response(
+    data={
         "page": page,
         "page_size": page_size,
         "total": total,
@@ -241,7 +243,11 @@ def list_sales_orders(
         "next_page": page + 1 if page < total_pages else None,
         "prev_page": page - 1 if page > 1 else None,
         "data": data
-    }
+    },
+    message=_("Data fetched successfully"),
+    status_code=200,
+    flatten=True
+)
 
 
 
@@ -261,11 +267,7 @@ def delete_sales_order(name):
     """
     try:
         if not name:
-            return {
-                "status": "error",
-                "message": "Sales Order name is required"
-            }
-
+           return api_error("Sales Order name is required",400)
         so = frappe.get_doc("Sales Order", name)
 
         # 🔹 If Submitted → Cancel first
@@ -277,18 +279,16 @@ def delete_sales_order(name):
 
         frappe.db.commit()
 
-        return {
-            "status": "success",
-            "status_code":200,
-            "message": f"Sales Order {name} deleted successfully"
-        }
+        return api_response(
+            message=f"Sales Order {name} deleted successfully",
+            status_code=200,
+            flatten=True
+        )
+
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Sales Order Delete Error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        return api_error(str(e), 403)
 
 
 
@@ -302,15 +302,19 @@ def cancel_sales_order(name):
     so = frappe.get_doc("Sales Order", name)
 
     if so.docstatus != 1:
-        frappe.throw("Only Submitted Sales Orders can be cancelled")
+        return api_error("Only Submitted Sales Orders can be cancelled",400)
 
     so.cancel()
 
-    return {
-        "status": "success",
+    return api_response(
+    data={
         "sales_order": so.name,
         "docstatus": so.docstatus
-    }
+    },
+    message="Sales Order cancelled successfully",
+    status_code=200,
+    flatten=True
+)
 
 
 
@@ -326,11 +330,7 @@ def get_sales_order_by_id(name):
     """
     try:
         if not name:
-            return {
-                "status": "error",
-                "message": "Sales Order name is required"
-            }
-
+            return api_error("Sales Order name is required",400)
         so = frappe.get_doc("Sales Order", name)
 
         return {
@@ -414,19 +414,11 @@ def get_sales_order_by_id(name):
         }
 
     except frappe.DoesNotExistError:
-        return {
-            "status": "error",
-            "message": "Sales Order not found"
-        }
+         return api_error(str(e), 400)
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Get Sales Order Error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
-
-
+        return api_error(str(e), 403)
 
 
 
@@ -450,20 +442,14 @@ def create_sales_invoice_from_sales_order(data=None):
     sales_order = data.get("sales_order")
 
     if not sales_order:
-        return {
-            "status": "error",
-            "message": "sales_order is required"
-        }
+        return api_error("sales_order is required",400)
 
     try:
         # 🔹 Validate Sales Order
         so = frappe.get_doc("Sales Order", sales_order)
 
         if so.docstatus != 1:
-            return {
-                "status": "error",
-                "message": "Sales Order must be Submitted to create Sales Invoice"
-            }
+            return api_error("Sales Order must be Submitted to create Sales Invoice",400)
 
         # 🔹 Create Sales Invoice using ERPNext mapper
         si = make_sales_invoice(sales_order)
@@ -485,19 +471,20 @@ def create_sales_invoice_from_sales_order(data=None):
         if data.get("submit"):
             si.submit()
 
-        return {
-            "status": "success",
-            "status_code": 201,
-            "message": "Sales Invoice created successfully",
-            "sales_invoice": si.name
-        }
+        return api_response(
+            data={
+                "sales_invoice": si.name
+            },
+            message="Sales Invoice created successfully",
+            status_code=201,
+            flatten=True
+        )
+
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Create Sales Invoice Error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        return api_error(str(e), 403)
+
 
 
 
@@ -521,20 +508,14 @@ def create_delivery_note_from_sales_order(data=None):
     sales_order = data.get("sales_order")
 
     if not sales_order:
-        return {
-            "status": "error",
-            "message": "sales_order is required"
-        }
+        return api_error("sales_order is required",400)
 
     try:
         # 🔹 Validate Sales Order
         so = frappe.get_doc("Sales Order", sales_order)
 
         if so.docstatus != 1:
-            return {
-                "status": "error",
-                "message": "Sales Order must be Submitted"
-            }
+            return api_error("Sales Order must be Submitted",400)
 
         # 🔹 Create DN draft (no DB insert yet)
         dn = make_delivery_note(sales_order)
@@ -569,20 +550,19 @@ def create_delivery_note_from_sales_order(data=None):
         if data.get("submit"):
             dn.submit()
 
-        return {
-            "status": "success",
-            "status_code": 201,
-            "message": "Delivery Note created successfully",
-            "delivery_note": dn.name,
-            "docstatus": dn.docstatus
-        }
+        return api_response(
+            data={
+                "delivery_note": dn.name,
+                "docstatus": dn.docstatus
+            },
+            message="Delivery Note created successfully",
+            status_code=201,
+            flatten=True
+        )
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Delivery Note API Error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        return api_error(str(e), 403)
 
 
 
@@ -597,41 +577,33 @@ def submit_sales_order(name=None):
     """
     try:
         if not name:
-            return {
-                "status": "error",
-                "message": "Sales Order name is required"
-            }
-
+            return api_error("Sales Order name is required",400)
         # Fetch the Sales Order
         so = frappe.get_doc("Sales Order", name)
 
         # Only Draft orders can be submitted
         if so.docstatus != 0:
-            return {
-                "status": "error",
-                "message": f"Only Draft Sales Orders can be submitted (Current docstatus: {so.docstatus})"
-            }
+            return api_error(
+             "Only Draft Sales Orders can be submitted (Current docstatus: {so.docstatus})",400
+        )
 
         # Submit the Sales Order
         so.submit()
 
-        return {
-            "status": "success",
-            "status_code": 200,
-            "message": f"Sales Order {name} submitted successfully",
-            "sales_order": so.name,
-        
-        }
+        return api_response(
+            data={
+                "sales_order": so.name
+            },
+            message=f"Sales Order {name} submitted successfully",
+            status_code=200,
+            flatten=True
+        )
+
 
     except frappe.ValidationError as ve:
-        return {
-            "status": "error",
-            "message": str(ve)
-        }
+        return api_error(str(e), 403)
+
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Submit Sales Order Error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        return api_error(str(e), 403)

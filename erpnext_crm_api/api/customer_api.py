@@ -1,6 +1,7 @@
 import frappe
-
+from erpnext_crm_api.api.utils import api_response, api_error
 from frappe.utils import cint
+from frappe import _
 
 @frappe.whitelist()
 def list_customers(
@@ -65,14 +66,27 @@ def list_customers(
         )
     )
 
-    return {
-        "status": "success",
-        "message":"Customer List Fetched Successfully",
-        "data": customers,
-        "pagination": {
+    # return {
+    #     "status": "success",
+    #     "message":"Customer List Fetched Successfully",
+    #     "data": customers,
+    #     "pagination": {
+    #         "page": page,
+    #         "page_size": page_size,
+    #         "total_records": total_count,
+    #         "total_pages": (total_count + page_size - 1) // page_size
+    #     }
+    # }
+    
+    return api_response(
+        data={
             "page": page,
             "page_size": page_size,
             "total_records": total_count,
-            "total_pages": (total_count + page_size - 1) // page_size
-        }
-    }
+            "total_pages": (total_count + page_size - 1) // page_size,
+            "data": customers
+        },
+        message=_("Customer List Fetched Successfully"),
+        status_code=200,
+        flatten=True
+    )

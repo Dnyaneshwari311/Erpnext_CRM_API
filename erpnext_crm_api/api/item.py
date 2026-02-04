@@ -1,4 +1,6 @@
 import frappe
+from frappe import _
+from erpnext_crm_api.api.utils import api_response, api_error
 
 @frappe.whitelist(methods=["POST"])
 def create_item(data=None):
@@ -19,11 +21,15 @@ def create_item(data=None):
         })
         item.insert(ignore_permissions=True)  # bypass permission check
         frappe.db.commit()
-        return {"status": "success", 
-                "status_code":200,
-                "message": f"Item {item.name} created", "data": item.name}
+        return api_response(
+            data={"item": item.name},
+            message=f"Item {item.name} created",
+            status_code=200,
+            flatten=True
+        )
+
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        return api_error(str(e), 403)
 
 
 
@@ -120,13 +126,12 @@ def list_items(
     # -------------------------
     total = frappe.db.count("Item", filters=filters)
 
-    return {
-        "status": "success",
-        "data": items,
-        "total": total,
-        "page": page,
-        "page_size": page_size
-    }
+    return api_response(
+        data={"item": item.name},
+        message=f"Item {item.name} created",
+        status_code=200,
+        flatten=True
+    )
 
 
 
@@ -147,7 +152,7 @@ def update_item(data=None):
 
         name = data.get("name")
         if not name:
-            frappe.throw("Item name is required")
+            return api_error("Item name is required",400)
 
         item = frappe.get_doc("Item", name)
 
@@ -166,18 +171,16 @@ def update_item(data=None):
         item.save(ignore_permissions=True)
         frappe.db.commit()
 
-        return {
-            "status": "success",
-            "message": f"Item {name} updated successfully",
-            "data": item.as_dict()
-        }
+        return api_response(
+            data=item.as_dict(),
+            message=f"Item {name} updated successfully",
+            status_code=200,
+            flatten=True
+        )
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Update Item API Error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        return api_error(str(e), 403)
 
 
 
@@ -196,7 +199,7 @@ def delete_item(data=None):
 
         name = data.get("name")
         if not name:
-            frappe.throw(_("Item name is required"))
+            return api_error("Item name is required",400)
 
         item = frappe.get_doc("Item", name)
 
@@ -221,14 +224,13 @@ def delete_item(data=None):
         item.delete(ignore_permissions=True)
         frappe.db.commit()
 
-        return {
-            "status": "success",
-            "message": f"Item {name} deleted successfully"
-        }
+        return api_response(
+            data=None,
+            message=f"Item {name} deleted successfully",
+            status_code=200,
+            flatten=True
+        )
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Delete Item API Error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        return api_error(str(e), 403)

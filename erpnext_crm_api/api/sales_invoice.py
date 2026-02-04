@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from erpnext_crm_api.api.utils import api_response, api_error
 
 @frappe.whitelist(methods=["POST"])
 def create_sales_invoice(data=None):
@@ -21,21 +22,17 @@ def create_sales_invoice(data=None):
         })
         si.insert(ignore_permissions=True)
         si.submit() if data.get("submit") else None  # optional submit
-        return {"status": "success", 
-                "status_code":201,
-                "message":"Sales Invoice Created Successfully ",
-                "sales_invoice": si.name}
+        return api_response(
+            data={
+                "sales_invoice": si.name
+            },
+            message=_("Sales Invoice Created Successfully"),
+            status_code=201,
+            flatten=True
+        )
+
     except Exception as e:
-        return {"status": "error", "message": str(e)}
-
-
-
-
-
-
-
-
-
+           return api_error(str(e), 403)
 
 
 @frappe.whitelist()
@@ -114,8 +111,8 @@ def list_sales_invoices(
 
     total_pages = (total + page_size - 1) // page_size
 
-    return {
-        "status": "success",
+    return api_response(
+    data={
         "page": page,
         "page_size": page_size,
         "total": total,
@@ -123,11 +120,11 @@ def list_sales_invoices(
         "next_page": page + 1 if page < total_pages else None,
         "prev_page": page - 1 if page > 1 else None,
         "data": data
-    }
-
-
-
-
+    },
+    message=_("Data fetched successfully"),
+    status_code=200,
+    flatten=True
+)
 
 
 
@@ -152,7 +149,7 @@ def update_sales_invoice(name=None, data=None):
     name = name or data.get("name")
 
     if not name:
-        frappe.throw("Sales Invoice name is required")
+        return api_error("Sales Invoice name is required",400)
 
     try:
         si = frappe.get_doc("Sales Invoice", name)
@@ -189,19 +186,19 @@ def update_sales_invoice(name=None, data=None):
         if was_submitted or data.get("submit"):
             si.submit()
 
-        return {
-            "status": "success",
-            "status_code":200,
-            "sales_invoice": si.name,
-            "message":"sales invoice updated successfully"
-        }
+        return api_response(
+            data={
+                "sales_invoice": si.name
+            },
+            message=_("Sales Invoice updated successfully"),
+            status_code=200,
+            flatten=True
+        )
+
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Update Sales Invoice API")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        return api_error(str(e), 403)
 
 
 
@@ -223,7 +220,8 @@ def delete_sales_invoice(name):
         si.delete()
         return {"status": "success", "message": f"Sales Invoice {name} deleted"}
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+         return api_error(str(e), 403)
+
 
 
 @frappe.whitelist(methods=["DELETE"])
@@ -255,10 +253,7 @@ def delete_sales_invoice(name=None):
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Delete Sales Invoice API")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        return api_error(str(e), 403)
 
 
 
@@ -287,11 +282,8 @@ def get_sales_invoice_by_id(name=None):
     try:
         si = frappe.get_doc("Sales Invoice", name)
 
-        return {
-            "status": "success",
-            "status_code": 200,
-            "message":"Sales Invoice Fetched Successfully ",
-            "data": {
+        return api_response(
+            data={
                 "name": si.name,
                 "posting_date": si.posting_date,
                 "due_date": si.due_date,
@@ -313,23 +305,21 @@ def get_sales_invoice_by_id(name=None):
                     }
                     for item in si.items
                 ]
-            }
-        }
+            },
+            message=_("Sales Invoice Fetched Successfully"),
+            status_code=200,
+            flatten=True
+        )
+
 
     except frappe.DoesNotExistError:
-        return {
-            "status": "error",
-            "status_code": 404,
-            "message": "Sales Invoice not found"
-        }
+         return api_error(str(e), 400)
+
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Get Sales Invoice API")
-        return {
-            "status": "error",
-            "status_code": 500,
-            "message": str(e)
-        }
+        return api_error(str(e), 403)
+
 
 
 
@@ -355,39 +345,38 @@ def submit_sales_invoice(name=None):
     name = name or frappe.form_dict.get("name")
 
     if not name:
-        frappe.throw(_("Sales Invoice name is required"))
+        return api_error("Sales Invoice name is required",400)
 
     try:
         si = frappe.get_doc("Sales Invoice", name)
 
         # Validation
         if si.docstatus == 1:
-            frappe.throw(_("Sales Invoice is already submitted"))
+            return api_error("Sales Invoice is already submitted",400)
 
         if si.docstatus == 2:
-            frappe.throw(_("Cannot submit a cancelled Sales Invoice"))
+            return api_error("Cannot submit a cancelled Sales Invoice",400)
 
         # Workflow check (if enabled)
         if si.meta.has_field("workflow_state") and si.workflow_state:
             if si.workflow_state not in ["Approved"]:
-                frappe.throw(_("Sales Invoice must be Approved before submission"))
+                return api_error("Sales Invoice must be Approved before submission",403)
 
         # Submit
         si.submit()
 
-        return {
-            "status": "success",
-            "status_code": 200,
-            "message": "Sales Invoice submitted successfully",
-            "sales_invoice": si.name
-        }
+        return api_response(
+            data={
+                "sales_invoice": si.name
+            },
+            message=_("Sales Invoice submitted successfully"),
+            status_code=200,
+            flatten=True
+        )
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Submit Sales Invoice API")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        return api_error(str(e), 403)
 
 
 
