@@ -107,9 +107,7 @@ def get_customer_groups(
 
     except Exception as e:
         # return {"status": "error", "message": str(e)}
-        return api_error(
-            message=str(e), 
-            status_code=403
+        return api_error(str(e), 403
         )
 
         
