@@ -242,3 +242,27 @@ app_license = "mit"
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+
+
+
+# erpnext_crm_api/hooks.py
+
+doc_events = {
+    "Event": {
+        "on_update": "erpnext_crm_api.api.event_reminder.handle_event_reschedule"
+    },
+    "ToDo": {
+        "after_insert": "erpnext_crm_api.api.custom_notification.handle_assignment_email"
+    }
+}
+
+scheduler_events = {
+    "cron": {
+        "*/1 * * * *": [
+            "erpnext_crm_api.api.event_reminder.send_configurable_event_reminders"
+        ]
+    }
+}
+
+
+
