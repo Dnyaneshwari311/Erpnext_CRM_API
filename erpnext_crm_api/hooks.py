@@ -264,5 +264,13 @@ scheduler_events = {
     }
 }
 
+fixtures = [
+    {
+        "dt": "Custom Field",
+        "filters": [
+            ["dt", "in", ["Employee",
+                          "Event"]]
+        ]
+    }
 
-
+]
